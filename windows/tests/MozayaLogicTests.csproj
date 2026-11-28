@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AssemblyName>MozayaLogicTests</AssemblyName>
+    <RootNamespace>Mozaya.LogicTests</RootNamespace>
+  </PropertyGroup>
+
+  <!-- アプリ本体の純粋ロジックをそのままリンクして検証する -->
+  <ItemGroup>
+    <Compile Include="../MozayaLogic.cs" Link="MozayaLogic.cs" />
+  </ItemGroup>
+
+</Project>
