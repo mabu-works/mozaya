@@ -1,0 +1,1 @@
+{"description":"もざや｜画像モザイク・ぼかしツール","name":"mozaya","private":true,"scripts":{"test":"node --test tests/*.test.js"},"version":"1.0.0"}
