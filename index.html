@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>もざや｜画像モザイク・ぼかしツール</title>
+<meta name="description" content="画像にモザイクやぼかしをかけられるブラウザ完結型ツール。ファイルは端末の外に出ず、すべての処理はブラウザ内で行われます。">
+<meta name="theme-color" content="#0a0f1c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<script>
+try {
+  var savedTheme = localStorage.getItem("mozaya-theme");
+  if (savedTheme === "light" || savedTheme === "dark") {
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  }
+} catch (e) { /* テーマ保存が使えない環境ではダークを既定にする */ }
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- 🧭 トップバー -->
+<nav class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#top">もざや</a>
+    <span class="topbar-tag">画像モザイク・ぼかし</span>
+    <span class="topbar-links">
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="テーマ切り替え">🌙</button>
+    </span>
+  </div>
+</nav>
+
+<!-- 🏠 ヘッダー -->
+<header class="site-header" id="top">
+  <p class="eyebrow">IMAGE MOSAIC / BLUR</p>
+  <h1>もざや</h1>
+  <p class="tagline">画像モザイク・ぼかしツール</p>
+</header>
+
+<!-- 📄 メイン -->
+<main>
+  <section class="card privacy-card">
+    <h2>プライバシーについて</h2>
+    <p><strong>読み込んだ画像ファイルがブラウザの外に出ることは一切ありません。</strong>サーバーへのアップロードは行わず、すべての処理はお使いの端末のブラウザ内だけで完結します。安心して個人情報が写った画像にもお使いください。</p>
+  </section>
+
+  <section class="card">
+    <h2>1. 画像を読み込む</h2>
+    <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="画像ファイルを選ぶ、またはドラッグ＆ドロップする">
+      <p class="drop-main">ここに画像をドラッグ＆ドロップ</p>
+      <p class="drop-sub">またはクリックしてファイルを選択（PNG / JPG のみ）</p>
+    </div>
+    <input id="fileInput" type="file" accept="image/png,image/jpeg" hidden>
+    <p id="fileMsg" class="note" aria-live="polite"></p>
+    <p id="imageInfo" class="note" aria-live="polite"></p>
+  </section>
+
+  <section class="card">
+    <h2>2. 範囲を選んで加工する</h2>
+    <div class="controls">
+      <fieldset class="mode-fieldset">
+        <legend>加工の種類</legend>
+        <label class="radio-label"><input type="radio" name="mode" value="mosaic" checked> モザイク</label>
+        <label class="radio-label"><input type="radio" name="mode" value="blur"> ぼかし</label>
+      </fieldset>
+      <div class="strength-control">
+        <label for="strengthRange">強さ：<span id="strengthValue">16</span></label>
+        <input id="strengthRange" type="range" min="4" max="40" step="1" value="16">
+        <p class="note">強さは、これから追加する範囲に適用されます（モザイクはブロックの大きさ、ぼかしはぼけ具合）。</p>
+      </div>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="mainCanvas" width="640" height="400"></canvas>
+      <p id="noImageMsg" class="no-image-msg">まだ画像が読み込まれていません。上のエリアから画像を選んでください。</p>
+    </div>
+    <p class="note">画像の上でドラッグすると四角い範囲が追加され、選んだ加工がかかります。加工は毎回もとの画像から描き直すので、何度範囲を追加しても画質が重ねがけで劣化することはありません。</p>
+    <p class="note note-caution">⚠ 注意：画像の端付近や小さい画像に強いぼかしをかけると、ぼかした部分からもとの画像がうっすら透けて見える場合があります。端にある文字など、確実に隠したいものにはモザイクとの併用がおすすめです。</p>
+    <div class="actions">
+      <button id="undoBtn" class="btn btn-sub" type="button" disabled>最後の範囲を取り消す</button>
+      <button id="clearRegionsBtn" class="btn btn-sub" type="button" disabled>範囲をすべて消す</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>加工した範囲（<span id="regionCount">0</span>件）</h2>
+    <ul id="regionList" class="region-list"></ul>
+    <p id="regionEmpty" class="note">まだ範囲はありません。画像の上でドラッグして範囲を追加してください。</p>
+  </section>
+
+  <section class="card">
+    <h2>3. 画像を保存する</h2>
+    <p>加工結果を PNG 形式でダウンロードできます。書き出しはもとの画像と同じ解像度で行われます（範囲の枠線は含まれません）。</p>
+    <div class="actions">
+      <button id="exportBtn" class="btn btn-primary" type="button" disabled>PNGでダウンロード</button>
+    </div>
+    <p id="exportMsg" class="note" aria-live="polite"></p>
+  </section>
+</main>
+
+<!-- 📎 フッター -->
+<footer class="site-footer">
+  <p>もざや — 画像はブラウザ内でのみ処理され、外部に送信されることはありません</p>
+</footer>
+
+<script src="js/mozaya-core.js"></script>
+<script src="app.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
